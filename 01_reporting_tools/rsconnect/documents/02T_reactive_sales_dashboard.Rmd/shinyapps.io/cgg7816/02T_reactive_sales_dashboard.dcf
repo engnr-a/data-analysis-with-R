@@ -1,0 +1,13 @@
+name: 02T_reactive_sales_dashboard
+title: 02T_reactive_sales_dashboard
+username:
+account: cgg7816
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6653450
+bundleId: 6105413
+url: https://cgg7816.shinyapps.io/02T_reactive_sales_dashboard/
+when: 1658065431.43751
+lastSyncTime: 1658065431.43752
+asMultiple: FALSE
+asStatic: FALSE

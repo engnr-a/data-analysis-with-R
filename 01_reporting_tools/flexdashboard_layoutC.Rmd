@@ -1,0 +1,139 @@
+---
+title: "Sales Dashboard"
+author: "Abubakar Shola Suleiman"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+
+# Core
+library(tidyverse)
+
+# Interactive Visualizations
+library(plotly)
+
+# Spatial Data
+library(raster)
+library(sf)
+
+# Currency formatting
+#source("00_scripts/plot_sales.R")
+```
+
+
+```{r}
+# Bike data
+bikes_tbl      <- readRDS("../00_bike_data/bikes_tbl.rds")
+bikeshops_tbl  <- readRDS("../00_bike_data/bikeshops_tbl.rds")
+orderlines_tbl <- readRDS("../00_bike_data/orderlines_tbl.rds")
+
+bike_orderlines_tbl <- orderlines_tbl %>%
+    left_join(bikes_tbl,     by = c("product_id" = "bike_id")) %>%
+    left_join(bikeshops_tbl, by = c("customer_id" = "bikeshop_id")) %>%
+    mutate(total_price = price_euro * quantity)
+
+
+# German spatial data
+#germany_sp <- getData('GADM', country='DE', level=1) 
+
+#I COULDNT DOWNLOAD REMOTELY DUE TO SOME PROXY RESTRICTION.I DOWNLOAD THE RAW FILE FROM https://gadm.org/download_country_v3.html
+
+germany_sp <-readRDS("../00_bike_data/gadm36_DEU_1_sf.rds")
+# Convert SpatialPolygonsDataFrame to an sf dataframe
+germany_sf <- st_as_sf(germany_sp) %>% 
+                  # Add english names
+                  mutate(VARNAME_1 = ifelse(is.na(VARNAME_1), NAME_1, VARNAME_1))
+
+
+```
+
+Sidebar {.sidebar}
+=======================================================================
+
+Button Inputs
+
+- Input 1
+
+- Input 2
+
+
+Page 1
+=======================================================================
+
+<!-- Sidebar {.sidebar} -->
+<!-- ----------------------------------------------------------------------- -->
+
+<!-- Button Inputs -->
+
+<!-- - Input 1 -->
+
+<!-- - Input 2 -->
+
+
+Column {data-height=650 .tabset}
+-----------------------------------------------------------------------
+
+### Chart A-1
+
+```{r}
+
+```
+
+### Chart A-2
+
+```{r}
+
+```
+
+
+Column {data-height=350 .tabset .tabset-fade}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+
+```
+
+### Chart C
+
+```{r}
+
+```
+
+### Chart D
+
+```{r}
+
+```
+
+
+
+Page 2 {data-orientation=columns}
+=======================================================================
+
+
+Column {data-height=200}
+-----------------------------------------------------------------------
+
+### Chart E
+
+```{r}
+
+```
+
+Column {data-height=200}
+-----------------------------------------------------------------------
+
+### Chart F
+
+```{r}
+
+```
+
+
+

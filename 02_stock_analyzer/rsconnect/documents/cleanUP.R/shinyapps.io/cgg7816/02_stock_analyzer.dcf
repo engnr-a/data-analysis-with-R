@@ -1,0 +1,13 @@
+name: 02_stock_analyzer
+title: 02_stock_analyzer
+username:
+account: cgg7816
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6653255
+bundleId: 6105328
+url: https://cgg7816.shinyapps.io/02_stock_analyzer/
+when: 1658061728.58312
+lastSyncTime: 1658061728.58313
+asMultiple: FALSE
+asStatic: FALSE

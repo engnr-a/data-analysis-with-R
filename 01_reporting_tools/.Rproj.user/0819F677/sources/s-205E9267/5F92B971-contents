@@ -1,0 +1,349 @@
+---
+title: "Shiny Tutorial"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    #vertical_layout: fill
+    #storyboard: true
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+# Shiny
+library(shinyWidgets)
+library(flexdashboard)
+library(shiny)
+library(DT)
+
+# Core
+library(tidyverse)
+library(lubridate)
+
+
+# Interactive Visualizations
+library(plotly)
+
+# Spatial Data
+library(raster)
+library(sf)
+
+library(flexdashboard)
+
+# Core
+library(tidyverse)
+
+# Interactive Visualizations
+library(plotly)
+
+# Spatial Data
+library(raster)
+library(sf)
+
+# Load Libraries
+library(tidyverse)
+library(plotly)
+library(lubridate)
+library(plotly)
+```
+
+
+```{r}
+# Bike data
+bikes_tbl      <- readRDS("../00_bike_data/bikes_tbl.rds")
+bikeshops_tbl  <- readRDS("../00_bike_data/bikeshops_tbl.rds")
+orderlines_tbl <- readRDS("../00_bike_data/orderlines_tbl.rds")
+
+bike_orderlines_tbl <- orderlines_tbl %>%
+    left_join(bikes_tbl,     by = c("product_id" = "bike_id")) %>%
+    left_join(bikeshops_tbl, by = c("customer_id" = "bikeshop_id")) %>%
+    mutate(total_price = price_euro * quantity)
+
+# German spatial data
+#germany_sp <- getData('GADM', country='DE', level=1) 
+
+#I COULDNT DOWNLOAD REMOTELY DUE TO SOME PROXY RESTRICTION.I DOWNLOAD THE RAW FILE FROM https://gadm.org/download_country_v3.html
+
+germany_sp <-readRDS("../00_bike_data/gadm36_DEU_1_sf.rds")
+# Convert SpatialPolygonsDataFrame to an sf dataframe
+germany_sf <- st_as_sf(germany_sp) %>% 
+                  # Add english names
+                  mutate(VARNAME_1 = ifelse(is.na(VARNAME_1), NAME_1, VARNAME_1))
+```
+
+
+
+
+```{r}
+format_to_euro <- function(x, suffix = " €") {
+
+  scales::dollar(x,
+                 suffix       = suffix,
+                 prefix       = "",
+                 big.mark     = ".",
+                 decimal.mark = ",")
+}
+
+euro_format <- function(scale        = 1,
+                        prefix       = "",
+                        suffix       = " €",
+                        big.mark     = ".",
+                        decimal.mark = ",") {
+
+  scales::dollar_format(suffix       = suffix,
+                        prefix       = prefix,
+                        big.mark     = big.mark,
+                        decimal.mark = decimal.mark,
+                        scale        = scale)
+
+}
+```
+
+
+
+
+
+```{r}
+geo_plot_tbl <- bike_orderlines_tbl %>% 
+                  group_by(state) %>%
+                  summarise(total_revenue = sum(total_price)) %>%
+                  ungroup() %>%
+                  right_join(germany_sf, by = c("state" = "VARNAME_1")) %>% 
+                  mutate(total_revenue = ifelse(is.na(total_revenue), 0, total_revenue)) %>% 
+                  mutate(label_text = str_glue("State: {state}
+                                         Revenue: {format_to_euro(total_revenue)}")) %>% 
+                  st_as_sf()
+
+```
+
+
+
+Sidebar {.sidebar}
+------------------------
+
+```{r}
+dateRangeInput(inputId = "order_date", 
+               label   = h4("Date Range"), 
+               start   = min(bike_orderlines_tbl$order_date),
+               end     = max(bike_orderlines_tbl$order_date),   
+               startview = "year")
+
+```
+
+
+
+
+```{r}
+# Inputs
+checkboxGroupInput(inputId = "checkbox_group1", 
+                   label   = h4("Bike Type (Category 1)"), 
+                   choices = c("Mountain",
+                              "Hybrid / City",
+                            "E-Bikes",
+                              "Road",
+                              "Gravel"), 
+                   selected = c("Mountain"))
+
+```
+
+
+
+```{r}
+# Inputs
+checkboxGroupInput(inputId = "checkbox_group2", 
+                   label   = h4("Bike Type (Category 2)"), 
+                   choices = c("Cross-Country",
+                                "Enduro",
+                                "Downhill",
+                                "Fat Bikes",
+                                "Dirt Jump",
+                                "Race" = "Race",
+                                "Adventure",
+                                "Endurance",
+                                "Cyclocross",
+                               "Touring",
+                                "Trail",
+                                "Triathlon Bike"), 
+                   selected = c("Enduro"))
+
+```
+
+
+```{r}
+# Inputs
+checkboxGroupInput(inputId = "chartselector", 
+                   label   = h4("Time Frame"), 
+                   choices = c("day",
+                              "week",
+                            "month",
+                              "quarter"
+                              ), 
+                   selected = c("quarter"))
+
+```
+
+
+```{r}
+# Reset Button
+actionButton(inputId = "reset", 
+             label   = "Reset", 
+             icon    = icon("sync"))
+
+observeEvent(eventExpr = input$reset, handlerExpr = {
+  
+
+  
+  updateDateRangeInput(session = session, 
+                       inputId = "date_range", 
+                       start   = "2018-01-01", 
+                       end     = today())
+  
+  
+  updateCheckboxGroupInput(session  = session, 
+                           inputId  = "checkbox_group1", 
+                           selected = c("Mountain")
+                           )
+  
+  updateCheckboxGroupInput(session  = session, 
+                           inputId  = "checkbox_group2", 
+                           selected = c("Enduro")
+                           
+                           )
+  
+  
+  
+})
+
+```
+
+
+
+
+
+
+
+
+
+Row {data-height=80}
+-----------------------
+
+
+-----------------------
+
+
+### Orders { .first-box }
+
+
+
+
+```{r}
+
+```
+
+
+### Sales { .second-box }
+
+
+```{r}
+
+```
+
+
+### Ratio, Mountain to Road { .third-box }
+```{r}
+
+```
+
+<style>
+.first-box {
+  background-color: green;
+  color: white;
+}
+.second-box  {
+  background-color:powderblue;
+  color: white;
+}
+
+.third-box 
+{
+  background-color: purple;
+  color: white;
+}
+</style>
+
+
+
+Row {data-width=750}
+-----------------------
+### By State
+
+```{r}
+# Reactive Filter
+sales_data_filtered <- reactive({
+  
+  bike_orderlines_tbl%>%
+    dplyr::select(order_date, state, quantity, category_1, category_2, total_price)%>%
+    filter(category_1 %in% input$checkbox_group1) %>%
+    filter(category_2 %in% input$checkbox_group2)%>% 
+    group_by(state)%>%
+    summarise(total_revenue = sum(total_price))%>%
+    ungroup()%>%
+    right_join(germany_sf, by = c("state" = "VARNAME_1"))%>% 
+    mutate(total_revenue = ifelse(is.na(total_revenue), 0, total_revenue)) %>% 
+                  mutate(label_text = str_glue("State: {state}
+                                         Revenue: {format_to_euro(total_revenue)}"))
+    
+})
+
+```
+
+
+```{r}
+
+output$plot_output <- renderPlotly({
+   sales_data_filtered() %>% st_as_sf() %>%
+     plot_ly( 
+        split      = ~NAME_1, 
+        color      = ~total_revenue,
+        colors     = "Blues",
+        stroke     = I("black"),
+        hoverinfo  = 'text', 
+        text       = ~label_text, 
+        hoveron    = "fills", 
+        showlegend = FALSE) 
+    
+     
+ })
+
+plotlyOutput("plot_output")
+
+```
+
+
+
+
+### Over Time
+
+```{r}
+prettyRadioButtons(
+        inputId = "radioB",
+        label = "Time Frame",
+        choices = c("Day", "WeeK", "Month", "Quarter"),
+        inline = TRUE,
+        outline = TRUE,
+        plain = TRUE,
+        icon = icon("thumbs-up")
+      )
+```
+
+
+```{r}
+# Reactive Filter
+output$dt_output_1 <- DT::renderDataTable(expr = {
+  
+  sales_data_filtered() 
+}, options = list(scrollY = "250px"))
+
+DTOutput(outputId = "dt_output_1")
+
+```
+

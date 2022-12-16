@@ -1,0 +1,12 @@
+"0","sales_by_category_tbl <- bike_orderlines_tbl %>%"
+"0","  dplyr::select(category_2, category_1, total_price) %>%"
+"0","  "
+"0","  group_by(category_2, category_1) %>%"
+"0","  summarise(total_revenue = sum(total_price)) %>%"
+"0","  ungroup() %>%"
+"0","  "
+"0","  arrange(desc(total_revenue)) %>%"
+"0","  mutate(category_2 = as_factor(category_2) %>% fct_rev())"
+"1","[38;5;232m`summarise()` has grouped output by 'category_2'. You can override using the `.groups` argument.[39m
+"
+"0","  "
